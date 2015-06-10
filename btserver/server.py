@@ -7,7 +7,7 @@
 from bluetooth import *
 import time
 import json
-from random import randint
+import random
 server_sock=BluetoothSocket( RFCOMM )
 server_sock.bind(("",PORT_ANY))
 server_sock.listen(1)
@@ -30,8 +30,8 @@ while True:
     try:
         while True:
  	    #client_sock.send("current = " + str(int(round(time.time() * 1000))))
-            sensor['sens1'] = randint(0,999)
-            sensor['sens2'] = randint(0,999)
+            sensor['sens1'] = random.uniform(0.1, 9.9)
+            sensor['sens2'] = random.uniform(0.1, 9.9)
             print json.dumps(sensor)
             client_sock.send(json.dumps(sensor))
             time.sleep(5)
