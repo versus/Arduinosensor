@@ -97,7 +97,7 @@ public class BtDeviceListActivity extends ActionBarActivity {
             return;
         }
         this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, "Press twice to exit", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Нажми еще раз для выхода", Toast.LENGTH_SHORT).show();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -126,7 +126,7 @@ public class BtDeviceListActivity extends ActionBarActivity {
         private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
-        	textView1.setText("Connecting...");
+        	textView1.setText("Соединение...");
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);

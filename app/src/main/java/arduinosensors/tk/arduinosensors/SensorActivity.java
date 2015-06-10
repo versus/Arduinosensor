@@ -3,14 +3,21 @@ package arduinosensors.tk.arduinosensors;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.androidplot.xy.XYPlot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,33 +30,64 @@ import butterknife.InjectView;
 
 public class SensorActivity extends ActionBarActivity {
 
+    final String COLUMN_DATETIME ="sensor_datetime";
+    final String COLUMN_NAME ="sensor_name";
+    final String COLUMN_VALUE ="sensor_value";
+    final int DB_VERSION = 1;
+    final String DB_NAME = "mSensor";
+    final String TABLE_NAME_SENSOR ="sensor";
+
+    final String CREATE_TABLE = "create table "+ TABLE_NAME_SENSOR +" ( id integer primary key autoincrement,"
+            + COLUMN_DATETIME + " int, "
+            + COLUMN_NAME + " text, "
+            + COLUMN_VALUE  + " real );";
+
     Handler bluetoothIn;
     final int handlerState = 0;        				 //used to identify handler message
     private BluetoothAdapter btAdapter = null;
     private BluetoothSocket btSocket = null;
     private StringBuilder recDataString = new StringBuilder();
 
-    private ConnectedThread mConnectedThread;
-
     // SPP UUID service - this should work for most devices
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    // String for MAC address
-    private static String address;
-
     @InjectView(R.id.resultFromBt)
     TextView textViewResult;
+
+    //@InjectView(R.id.dynamicXYPlot)
+    //XYPlot plot;
+
+    SQLiteDatabase db;
+    DBHelper dbh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor);
         ButterKnife.inject(this);
+        dbh = new DBHelper(this);
+        db = dbh.getWritableDatabase();
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if (msg.what == handlerState) {
                     String readMessage = (String) msg.obj;
                     textViewResult.setText(readMessage);
+                    String name ="sens1";
+                    double value = 3838.32;
+                    db.beginTransaction();
+                    try{
+                        ContentValues cv = new ContentValues();
+                        Log.d("SensorActivity", "--- Insert in sensor: ---");
+                        cv.put(COLUMN_NAME, name);
+                        cv.put(COLUMN_VALUE, value);
+                        cv.put(COLUMN_DATETIME, System.currentTimeMillis());
+                        long rowID = db.insert(TABLE_NAME_SENSOR, null, cv);
+                        Log.d("SensorActivity", "row inserted, ID = " + rowID);
+                        db.setTransactionSuccessful();
+                    } finally {
+                        db.endTransaction();
+                    }
+
                 }
             }
         };
@@ -70,7 +108,7 @@ public class SensorActivity extends ActionBarActivity {
         Intent intent = getIntent();
 
         //Get the MAC address from the DeviceListActivty via EXTRA
-        address = intent.getStringExtra(BtDeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        String address = intent.getStringExtra(BtDeviceListActivity.EXTRA_DEVICE_ADDRESS);
 
         //create device and set the MAC address
         BluetoothDevice device = btAdapter.getRemoteDevice(address);
@@ -93,7 +131,7 @@ public class SensorActivity extends ActionBarActivity {
                 //insert code to deal with this
             }
         }
-        mConnectedThread = new ConnectedThread(btSocket);
+        ConnectedThread mConnectedThread = new ConnectedThread(btSocket);
         mConnectedThread.start();
     }
 
@@ -124,11 +162,10 @@ public class SensorActivity extends ActionBarActivity {
             Toast.makeText(getBaseContext(), "Device does not support bluetooth", Toast.LENGTH_LONG).show();
         }
         else {
-          if (btAdapter.isEnabled()) {
-          } else {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
-          }
+            if (!btAdapter.isEnabled()) {
+              Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+              startActivityForResult(enableBtIntent, 1);
+            }
         }
     }
 
@@ -183,5 +220,28 @@ public class SensorActivity extends ActionBarActivity {
             }
         }
     }
+
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+          // конструктор суперкласса
+          super(context, DB_NAME, null, DB_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+          Log.d("SensorActivity", "--- onCreate database ---");
+            Log.d("SensorActivity", "CREATE TABLE: " + CREATE_TABLE);
+          // создаем таблицу с полями
+          db.execSQL(CREATE_TABLE);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
 
 }
