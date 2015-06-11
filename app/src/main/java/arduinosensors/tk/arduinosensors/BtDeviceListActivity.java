@@ -12,13 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Set;
 
+import arduinosensors.tk.arduinosensors.ui.main.SensorActivity;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
@@ -135,10 +135,11 @@ public class BtDeviceListActivity extends ActionBarActivity {
             Log.d(TAG, "Bluetooth Address = " + address);
 			startActivity(i);
             new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                textView1.setText("");
-            }}, 2000);
+                @Override
+                public void run() {
+                    textView1.setText("");
+                }
+            }, 2000);
 
         }
     };
