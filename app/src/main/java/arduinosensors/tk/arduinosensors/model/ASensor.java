@@ -2,12 +2,12 @@ package arduinosensors.tk.arduinosensors.model;
 
 import java.util.Calendar;
 
-public class Sensor {
+public class ASensor {
     public String name;
     public double value;
     public int date_time;
 
-    public Sensor(String name, double value) {
+    public ASensor(String name, double value) {
         this.name = name;
         this.value = value;
         Calendar c = Calendar.getInstance();

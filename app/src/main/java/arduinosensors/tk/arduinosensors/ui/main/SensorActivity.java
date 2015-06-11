@@ -44,7 +44,7 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
                 if (msg.what == handlerState) {
                     String readMessage = (String) msg.obj;
                     textViewResult.setText(readMessage);
-                    presenter.worker(readMessage);
+                    presenter.worker(readMessage.toString());
 
                 }
             }

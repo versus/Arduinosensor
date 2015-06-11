@@ -30,10 +30,14 @@ while True:
     try:
         while True:
  	    #client_sock.send("current = " + str(int(round(time.time() * 1000))))
-            sensor['sens1'] = random.uniform(0.1, 9.9)
-            sensor['sens2'] = random.uniform(0.1, 9.9)
-            print json.dumps(sensor)
-            client_sock.send(json.dumps(sensor))
+            lst = []
+            d = {}
+            d['sens1']=random.uniform(0.1, 9.9)
+            lst.append(d)
+            d = {}
+            d['sens2']=random.uniform(0.1, 9.9)
+            lst.append(d)
+            client_sock.send(json.dumps(lst))
             time.sleep(5)
             #data = client_sock.recv(1024)
             #if len(data) == 0: break
