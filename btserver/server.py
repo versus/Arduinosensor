@@ -38,7 +38,8 @@ while True:
             d['sens2']=random.uniform(0.1, 9.9)
             lst.append(d)
             client_sock.send(json.dumps(lst))
-            time.sleep(5)
+            print json.dumps(lst)
+#            time.sleep(5)
             #data = client_sock.recv(1024)
             #if len(data) == 0: break
             # print("received [%s]" % data)

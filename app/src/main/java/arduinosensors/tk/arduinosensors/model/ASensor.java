@@ -7,10 +7,11 @@ public class ASensor {
     public double value;
     public long date_time;
 
-    public ASensor(String name, double value) {
+    public ASensor(String name, double value, long timestamp) {
         this.name = name;
         this.value = value;
-        Calendar c = Calendar.getInstance();
-        this.date_time = System.currentTimeMillis();
+        this.date_time = timestamp;
+        //this.date_time = System.currentTimeMillis();
+
     }
 }
