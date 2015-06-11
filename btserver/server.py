@@ -39,7 +39,7 @@ while True:
             lst.append(d)
             client_sock.send(json.dumps(lst))
             print json.dumps(lst)
-#            time.sleep(5)
+            time.sleep(5)
             #data = client_sock.recv(1024)
             #if len(data) == 0: break
             # print("received [%s]" % data)

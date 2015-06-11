@@ -84,7 +84,7 @@ public class SensorPresenterImpl implements SensorPresenter {
         try {
             btSocket = createBluetoothSocket(device);
         } catch (IOException e) {
-            Toast.makeText(activity.getBaseContext(), "Socket creation failed", Toast.LENGTH_LONG).show();
+            rootView.showMessage("Socket creation failed");
         }
         // Establish the Bluetooth socket connection.
         try
@@ -109,6 +109,21 @@ public class SensorPresenterImpl implements SensorPresenter {
         Runnable worker = new jsonWorker(message, timestamp);
         executor.execute(worker);
     }
+
+    @Override
+    public boolean exportDB() {
+        return false;
+    }
+
+    @Override
+    public boolean  cleanDB() {
+        if(db.delete(DbHelper.TABLE_NAME_SENSOR, "1", null) > 0){
+            rootView.showMessage("База данных очищена!");
+            return true;
+        }
+        return false;
+    }
+
 
     private void checkBTState() {
         if(btAdapter==null) {

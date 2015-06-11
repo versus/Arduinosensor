@@ -1,5 +1,7 @@
 package arduinosensors.tk.arduinosensors.ui.main;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -76,6 +78,13 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
         if (id == R.id.action_settings) {
             return true;
         }
+        if(id == R.id.menu_deleteDB){
+            showCleanDBAlert();
+            return true;
+        }
+        if(id == R.id.menu_exportDB){
+            return presenter.exportDB();
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -83,5 +92,25 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
     @Override
     public void showMessage(String message) {
         Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    private void showCleanDBAlert(){
+        AlertDialog.Builder ad;
+        ad = new AlertDialog.Builder(this);
+        ad.setTitle("Удаление данных");  // заголовок
+        ad.setMessage("Внимание, удаленные данные нельзя будет восстановить."); // сообщение
+        ad.setPositiveButton("Удалить!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                presenter.cleanDB();
+            }
+        });
+        ad.setNegativeButton("Я передумал", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                showMessage("Возможно вы правы");
+
+            }
+        });
+        ad.setCancelable(true);
+        ad.show();
     }
 }
