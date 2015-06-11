@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.UUID;
 
 import arduinosensors.tk.arduinosensors.BtDeviceListActivity;
@@ -93,28 +94,29 @@ public class SensorPresenterImpl implements SensorPresenter {
 
     @Override
     public void worker(String message) {
-        try {
-            JSONArray urls = new JSONArray(message);
-            for (int i = 0; i < urls.length(); i++) {
-                JSONObject jsonobj = urls.getJSONObject(i);
-                Log.d("JSON OBJECT", "SENSOR = " + jsonobj.toString());
-                //Log.d("GET JSON OBJECT", jsonobj.getString("preview"));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        String name ="sens1";
-        double value = 3838.32;
-        ASensor sensor = new ASensor(name,value);
         db.beginTransaction();
         try{
-            ContentValues cv = new ContentValues();
-            Log.d("SensorActivity", "--- Insert in sensor: ---");
-            cv.put(DbHelper.COLUMN_DATETIME, sensor.name);
-            cv.put(DbHelper.COLUMN_VALUE, sensor.value);
-            cv.put(DbHelper.COLUMN_DATETIME, sensor.date_time);
-            long rowID = db.insert(DbHelper.TABLE_NAME_SENSOR, null, cv);
-            Log.d("SensorActivity", "row inserted, ID = " + rowID);
+            try {
+                JSONArray urls = new JSONArray(message);
+                for (int i = 0; i < urls.length(); i++) {
+                    JSONObject jsonobj = urls.getJSONObject(i);
+                    Iterator<String> keys = jsonobj.keys();
+                    while (keys.hasNext()) {
+                        String key = (String)keys.next();
+                        double value = (double)jsonobj.getDouble(key);
+                        ASensor sensor = new ASensor(key,value);
+                        ContentValues cv = new ContentValues();
+                        Log.d("SensorActivity", "key = " + sensor.name + " value = " +sensor.value + " date_time = " + sensor.date_time);
+                        cv.put(DbHelper.COLUMN_DATETIME, sensor.name);
+                        cv.put(DbHelper.COLUMN_VALUE, sensor.value);
+                        cv.put(DbHelper.COLUMN_DATETIME, sensor.date_time);
+                        long rowID = db.insert(DbHelper.TABLE_NAME_SENSOR, null, cv);
+                        Log.d("SensorActivity", "row inserted, ID = " + rowID);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
