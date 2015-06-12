@@ -2,6 +2,8 @@ package arduinosensors.tk.arduinosensors.ui.main;
 
 import android.content.Intent;
 
+import java.util.Queue;
+
 
 public interface SensorPresenter {
     void onCreate();
@@ -13,4 +15,5 @@ public interface SensorPresenter {
     boolean cleanDB();
 
 
+    Queue getSensorValue(String sensorName);
 }

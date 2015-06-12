@@ -3,7 +3,7 @@
 # desc: simple demonstration of a server application that uses RFCOMM sockets
 #
 # $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
-
+from time import sleep
 from bluetooth import *
 import time
 import json
@@ -32,14 +32,15 @@ while True:
  	    #client_sock.send("current = " + str(int(round(time.time() * 1000))))
             lst = []
             d = {}
-            d['sens1']=random.uniform(0.1, 9.9)
+            d['s1']=random.uniform(-99, 99)
             lst.append(d)
             d = {}
-            d['sens2']=random.uniform(0.1, 9.9)
+            d['s2']=random.uniform(-99, 99)
             lst.append(d)
             client_sock.send(json.dumps(lst))
             print json.dumps(lst)
-            time.sleep(5)
+            sleep(0.25)
+#	    sleep(1)
             #data = client_sock.recv(1024)
             #if len(data) == 0: break
             # print("received [%s]" % data)

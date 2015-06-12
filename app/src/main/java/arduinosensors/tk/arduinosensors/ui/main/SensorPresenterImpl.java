@@ -6,17 +6,23 @@ import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,10 +45,15 @@ public class SensorPresenterImpl implements SensorPresenter {
     DbHelper dbh;
     SensorActivity activity;
     ThreadPoolExecutor executor;
+    Queue <Double> qSensor1;
+    Queue <Double> qSensor2;
+    private static final int SENSOR_Queue_SIZE = 600;
 
     public SensorPresenterImpl(SensorView rootView, SensorActivity activity) {
         this.rootView = rootView;
         this.activity = activity;
+        qSensor1=new LinkedList<Double>();
+        qSensor2=new LinkedList<Double>();
         dbh = new DbHelper(this.activity.getBaseContext());
         db = dbh.getWritableDatabase();
         int NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
@@ -55,11 +66,14 @@ public class SensorPresenterImpl implements SensorPresenter {
         );
     }
 
-
     @Override
     public void onCreate() {
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
+        for(int i=0; i<SENSOR_Queue_SIZE; i++){
+            qSensor1.add(0d);
+            qSensor2.add(0d);
+        }
     }
 
     @Override
@@ -75,7 +89,7 @@ public class SensorPresenterImpl implements SensorPresenter {
 
     @Override
     public void onResume(Intent intent) {
-//Get the MAC address from the DeviceListActivty via EXTRA
+        //Get the MAC address from the DeviceListActivty via EXTRA
         String address = intent.getStringExtra(BtDeviceListActivity.EXTRA_DEVICE_ADDRESS);
         Log.d("SensorPresenter", "intent address = " + address);
         //create device and set the MAC address
@@ -87,15 +101,12 @@ public class SensorPresenterImpl implements SensorPresenter {
             rootView.showMessage("Socket creation failed");
         }
         // Establish the Bluetooth socket connection.
-        try
-        {
+        try {
             btSocket.connect();
         } catch (IOException e) {
-            try
-            {
+            try {
                 btSocket.close();
-            } catch (IOException e2)
-            {
+            } catch (IOException e2) {
                 //insert code to deal with this
             }
         }
@@ -112,7 +123,25 @@ public class SensorPresenterImpl implements SensorPresenter {
 
     @Override
     public boolean exportDB() {
-        return false;
+            File sd = Environment.getExternalStorageDirectory();
+            File data = Environment.getDataDirectory();
+            FileChannel source=null;
+            FileChannel destination=null;
+            String currentDBPath = "/data/"+ "arduinosensors.tk.arduinosensors" +"/databases/"+DbHelper.DB_NAME;
+            String backupDBPath = DbHelper.DB_NAME+".sqlite";
+            File currentDB = new File(data, currentDBPath);
+            File backupDB = new File(sd, backupDBPath);
+            try {
+                source = new FileInputStream(currentDB).getChannel();
+                destination = new FileOutputStream(backupDB).getChannel();
+                destination.transferFrom(source, 0, source.size());
+                source.close();
+                destination.close();
+                rootView.showMessage("DB Exported!");
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        return true;
     }
 
     @Override
@@ -123,6 +152,20 @@ public class SensorPresenterImpl implements SensorPresenter {
         }
         return false;
     }
+
+    @Override
+    public synchronized Queue getSensorValue(String sensorName) {
+        if(sensorName.equals("s1")){
+            Log.d("SENSORVALUE", "sensor1 =" + qSensor1.toString());
+            return qSensor1;
+        }
+        else if(sensorName.equals("s2")){
+            Log.d("SENSORVALUE", "sensor1 =" + qSensor1.toString());
+            return qSensor2;
+        }
+        else return null;
+    }
+
 
 
     private void checkBTState() {
@@ -169,6 +212,7 @@ public class SensorPresenterImpl implements SensorPresenter {
                 try {
                     bytes = mmInStream.read(buffer);        	//read bytes from input buffer
                     String readMessage = new String(buffer, 0, bytes);
+                    executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
                     // Send the obtained bytes to the UI Activity via handler
                     activity.bluetoothIn.obtainMessage(activity.handlerState, bytes, -1, readMessage).sendToTarget();
                 } catch (IOException e) {
@@ -189,7 +233,6 @@ public class SensorPresenterImpl implements SensorPresenter {
             }
         }
     }
-
 
     private class jsonWorker implements Runnable {
         private String json;
@@ -213,6 +256,14 @@ public class SensorPresenterImpl implements SensorPresenter {
                             String key = (String)keys.next();
                             double value = (double)jsonobj.getDouble(key);
                             ASensor sensor = new ASensor(key,value, timestamp);
+                            if(sensor.name.equals("s1")){
+                                qSensor1.add(sensor.value);
+                                qSensor1.remove();
+                            }
+                            if(sensor.name.equals("s2")){
+                                qSensor2.add(sensor.value);
+                                qSensor2.poll();
+                            }
                             ContentValues cv = new ContentValues();
                             Log.d("SensorActivity", "key = " + sensor.name + " value = " +sensor.value + " date_time = " + sensor.date_time);
                             cv.put(DbHelper.COLUMN_DATETIME, sensor.name);
@@ -220,6 +271,7 @@ public class SensorPresenterImpl implements SensorPresenter {
                             cv.put(DbHelper.COLUMN_DATETIME, sensor.date_time);
                             long rowID = db.insert(DbHelper.TABLE_NAME_SENSOR, null, cv);
                             Log.d("SensorActivity", "row inserted, ID = " + rowID);
+
                         }
                     }
                 } catch (JSONException e) {
