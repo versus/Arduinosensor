@@ -156,11 +156,9 @@ public class SensorPresenterImpl implements SensorPresenter {
     @Override
     public synchronized Queue getSensorValue(String sensorName) {
         if(sensorName.equals("s1")){
-            Log.d("SENSORVALUE", "sensor1 =" + qSensor1.toString());
             return qSensor1;
         }
         else if(sensorName.equals("s2")){
-            Log.d("SENSORVALUE", "sensor1 =" + qSensor1.toString());
             return qSensor2;
         }
         else return null;
@@ -214,7 +212,6 @@ public class SensorPresenterImpl implements SensorPresenter {
                     String readMessage = new String(buffer, 0, bytes);
                     executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
                     // Send the obtained bytes to the UI Activity via handler
-                    activity.bluetoothIn.obtainMessage(activity.handlerState, bytes, -1, readMessage).sendToTarget();
                 } catch (IOException e) {
                     break;
                 }
@@ -236,6 +233,7 @@ public class SensorPresenterImpl implements SensorPresenter {
 
     private class jsonWorker implements Runnable {
         private String json;
+        private final Object lock = new Object();
         private long timestamp;
 
         public jsonWorker(String message, long timestamp) {
@@ -245,8 +243,6 @@ public class SensorPresenterImpl implements SensorPresenter {
 
         @Override
         public void run() {
-            db.beginTransaction();
-            try{
                 try {
                     JSONArray urls = new JSONArray(json);
                     for (int i = 0; i < urls.length(); i++) {
@@ -257,30 +253,31 @@ public class SensorPresenterImpl implements SensorPresenter {
                             double value = (double)jsonobj.getDouble(key);
                             ASensor sensor = new ASensor(key,value, timestamp);
                             if(sensor.name.equals("s1")){
-                                qSensor1.add(sensor.value);
-                                qSensor1.remove();
+                                synchronized (lock) {
+                                    qSensor1.add(sensor.value);
+                                    qSensor1.remove();
+                                }
                             }
                             if(sensor.name.equals("s2")){
-                                qSensor2.add(sensor.value);
-                                qSensor2.poll();
+                                synchronized (lock) {
+                                    qSensor2.add(sensor.value);
+                                    qSensor2.poll();
+                                }
                             }
                             ContentValues cv = new ContentValues();
-                            Log.d("SensorActivity", "key = " + sensor.name + " value = " +sensor.value + " date_time = " + sensor.date_time);
+                            //Log.d("SensorActivity", "key = " + sensor.name + " value = " +sensor.value + " date_time = " + sensor.date_time);
+
                             cv.put(DbHelper.COLUMN_DATETIME, sensor.name);
                             cv.put(DbHelper.COLUMN_VALUE, sensor.value);
                             cv.put(DbHelper.COLUMN_DATETIME, sensor.date_time);
                             long rowID = db.insert(DbHelper.TABLE_NAME_SENSOR, null, cv);
-                            Log.d("SensorActivity", "row inserted, ID = " + rowID);
+                            //Log.d("SensorActivity", "row inserted, ID = " + rowID);
 
                         }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                db.setTransactionSuccessful();
-            } finally {
-                db.endTransaction();
-            }
         }
 
     }

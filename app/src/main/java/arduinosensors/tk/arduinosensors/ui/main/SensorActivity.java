@@ -2,6 +2,7 @@ package arduinosensors.tk.arduinosensors.ui.main;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -60,18 +61,14 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         ButterKnife.inject(this);
         presenter = new SensorPresenterImpl(this, this);
         presenter.onCreate();
 
-        bluetoothIn = new Handler() {
-            public void handleMessage(android.os.Message msg) {
-                if (msg.what == handlerState) {
-                    String readMessage = (String) msg.obj;
-                    //textViewResult.setText(readMessage);
-                }
-            }
-        };
+
+
+
         dbHelper = new DbHelper(this);
 
         plotUpdater = new MyPlotUpdater(dynamicPlot);

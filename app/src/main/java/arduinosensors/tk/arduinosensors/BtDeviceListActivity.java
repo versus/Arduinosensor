@@ -1,8 +1,12 @@
 package arduinosensors.tk.arduinosensors;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -16,8 +20,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.Set;
 
+import arduinosensors.tk.arduinosensors.model.DbHelper;
 import arduinosensors.tk.arduinosensors.ui.main.SensorActivity;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -28,6 +38,8 @@ public class BtDeviceListActivity extends ActionBarActivity {
         // Debugging for LOGCAT
     private static final String TAG = "DeviceListActivity";
     private static final boolean D = true;
+    SQLiteDatabase db;
+    DbHelper dbHelper;
 
 
     private boolean doubleBackToExitPressedOnce = false;
@@ -51,6 +63,8 @@ public class BtDeviceListActivity extends ActionBarActivity {
         setContentView(R.layout.activity_bt_device_list);
         ButterKnife.inject(this);
         checkBTState();
+        dbHelper = new DbHelper(this);
+        db = dbHelper.getWritableDatabase();
         textView1.setTextSize(40);
     	textView1.setText(" ");
         mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
@@ -77,7 +91,7 @@ public class BtDeviceListActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_bt_device_list, menu);
+        getMenuInflater().inflate(R.menu.menu_sensor, menu);
         return true;
     }
 
@@ -87,7 +101,35 @@ public class BtDeviceListActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             return true;
         }
+        if(id == R.id.menu_deleteDB){
+            showCleanDBAlert();
+            return true;
+        }
+        if(id == R.id.menu_exportDB){
+            return exportDB();
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    private void showCleanDBAlert(){
+        AlertDialog.Builder ad;
+        ad = new AlertDialog.Builder(this);
+        ad.setTitle("Удаление данных");  // заголовок
+        ad.setMessage("Внимание, удаленные данные нельзя будет восстановить."); // сообщение
+        ad.setPositiveButton("Удалить!", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                cleanDB();
+            }
+        });
+        ad.setNegativeButton("Я передумал", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                showMessage("Возможно вы правы");
+
+            }
+        });
+        ad.setCancelable(true);
+        ad.show();
     }
 
     @Override
@@ -104,12 +146,9 @@ public class BtDeviceListActivity extends ActionBarActivity {
                 doubleBackToExitPressedOnce = false;
             }
         }, 2000);
-
-
     }
 
     private void checkBTState() {
-
         mBtAdapter=BluetoothAdapter.getDefaultAdapter();
         if(mBtAdapter==null) {
             Toast.makeText(getBaseContext(), "Device does not support Bluetooth", Toast.LENGTH_SHORT).show();
@@ -122,6 +161,12 @@ public class BtDeviceListActivity extends ActionBarActivity {
             }
           }
         }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        finish();
+        startActivity(getIntent());
+  }
+
 
         private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
@@ -143,4 +188,39 @@ public class BtDeviceListActivity extends ActionBarActivity {
 
         }
     };
+
+    public boolean exportDB() {
+            File sd = Environment.getExternalStorageDirectory();
+            File data = Environment.getDataDirectory();
+            FileChannel source=null;
+            FileChannel destination=null;
+            String currentDBPath = "/data/"+ "arduinosensors.tk.arduinosensors" +"/databases/"+DbHelper.DB_NAME;
+            String backupDBPath = DbHelper.DB_NAME+".sqlite";
+            File currentDB = new File(data, currentDBPath);
+            File backupDB = new File(sd, backupDBPath);
+            try {
+                source = new FileInputStream(currentDB).getChannel();
+                destination = new FileOutputStream(backupDB).getChannel();
+                destination.transferFrom(source, 0, source.size());
+                source.close();
+                destination.close();
+                showMessage("DB Exported!");
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        return true;
+    }
+
+    public boolean  cleanDB() {
+        if(db.delete(DbHelper.TABLE_NAME_SENSOR, "1", null) > 0){
+            showMessage("База данных очищена!");
+            return true;
+        }
+        return false;
+    }
+
+    public void showMessage(String message) {
+        Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
+    }
+
 }
