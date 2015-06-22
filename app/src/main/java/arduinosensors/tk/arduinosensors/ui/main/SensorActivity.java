@@ -1,5 +1,6 @@
 package arduinosensors.tk.arduinosensors.ui.main;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -9,11 +10,13 @@ import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidplot.Plot;
@@ -37,7 +40,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class SensorActivity extends ActionBarActivity implements SensorView {
+public class SensorActivity extends Activity implements SensorView {
 
 
 
@@ -45,8 +48,8 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
     final int handlerState = 0;        				 //used to identify handler message
     SensorPresenter presenter;
 
-    //@InjectView(R.id.resultFromBt)
-    //TextView textViewResult;
+    @InjectView(R.id.txtErrorText)
+    TextView textViewError;
 
     @InjectView(R.id.mSensorXYPlot)
     XYPlot dynamicPlot;
@@ -60,13 +63,24 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_sensor);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         ButterKnife.inject(this);
         presenter = new SensorPresenterImpl(this, this);
         presenter.onCreate();
 
-
+        bluetoothIn = new Handler() {
+               public void handleMessage(android.os.Message msg) {
+                        if (msg.what == handlerState) {
+                                String readMessage = (String) msg.obj;
+                                textViewError.setText(readMessage);
+                        }
+                    }
+        };
 
 
         dbHelper = new DbHelper(this);
@@ -81,13 +95,13 @@ public class SensorActivity extends ActionBarActivity implements SensorView {
         SensorDynamicSeries sine1Series = new SensorDynamicSeries(data, 0, "Sensor 1");
         SensorDynamicSeries sine2Series = new SensorDynamicSeries(data, 1, "Sensor 2");
 
-        LineAndPointFormatter formatter1 = new LineAndPointFormatter(Color.rgb(0, 0, 0), null, null, null);
+        LineAndPointFormatter formatter1 = new LineAndPointFormatter(Color.rgb(200, 0, 0), null, null, null);
         formatter1.getLinePaint().setStrokeJoin(Paint.Join.ROUND);
-        formatter1.getLinePaint().setStrokeWidth(1);
+        formatter1.getLinePaint().setStrokeWidth(3);
         dynamicPlot.addSeries(sine1Series,formatter1);
 
         LineAndPointFormatter formatter2 = new LineAndPointFormatter(Color.rgb(0, 0, 200), null, null, null);
-        formatter2.getLinePaint().setStrokeWidth(1);
+        formatter2.getLinePaint().setStrokeWidth(3);
         formatter2.getLinePaint().setStrokeJoin(Paint.Join.ROUND);
 
         //formatter2.getFillPaint().setAlpha(220);

@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical"
-    android:layout_height="fill_parent" android:layout_width="fill_parent">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
 
-    <!--TextView
-        android:text="@string/hello_world"
-        android:id="@+id/resultFromBt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" / -->
 
     <com.androidplot.xy.XYPlot
         android:id="@+id/mSensorXYPlot"
@@ -32,5 +30,16 @@
         androidPlot.legendWidget.heightMetric.value="25dp"
         androidPlot.legendWidget.positionMetrics.anchor="right_bottom"
         androidPlot.graphWidget.gridLinePaint.color="#000000"/>
-    
-</LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:padding="5dp"
+        android:textSize="48sp"
+        android:id="@+id/txtErrorText"
+        android:text=""
+        android:textColor="@color/md_black_1000" />
+
+</FrameLayout>
+

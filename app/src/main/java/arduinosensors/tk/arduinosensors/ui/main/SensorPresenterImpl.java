@@ -114,12 +114,6 @@ public class SensorPresenterImpl implements SensorPresenter {
         mConnectedThread.start();
     }
 
-    @Override
-    public void worker(String message) {
-        long timestamp = System.currentTimeMillis();
-        Runnable worker = new jsonWorker(message, timestamp);
-        executor.execute(worker);
-    }
 
     @Override
     public boolean exportDB() {
@@ -208,9 +202,11 @@ public class SensorPresenterImpl implements SensorPresenter {
             // Keep looping to listen for received messages
             while (true) {
                 try {
-                    bytes = mmInStream.read(buffer);        	//read bytes from input buffer
+                    bytes = mmInStream.read(buffer);            //read bytes from input buffer
                     String readMessage = new String(buffer, 0, bytes);
-                    executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
+
+                        executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
+
                     // Send the obtained bytes to the UI Activity via handler
                 } catch (IOException e) {
                     break;
@@ -235,30 +231,39 @@ public class SensorPresenterImpl implements SensorPresenter {
         private String json;
         private final Object lock = new Object();
         private long timestamp;
+        private Boolean stop = false;
 
         public jsonWorker(String message, long timestamp) {
             this.timestamp = timestamp;
+            if(message.substring(0,1).contains("[")){
             this.json = message;
+            }
+            else{
+                activity.bluetoothIn.obtainMessage(activity.handlerState, message.length(), -1, message).sendToTarget();
+                stop = true;
+            }
+
         }
 
         @Override
         public void run() {
+            if (!stop){
                 try {
                     JSONArray urls = new JSONArray(json);
                     for (int i = 0; i < urls.length(); i++) {
                         JSONObject jsonobj = urls.getJSONObject(i);
                         Iterator<String> keys = jsonobj.keys();
                         while (keys.hasNext()) {
-                            String key = (String)keys.next();
-                            double value = (double)jsonobj.getDouble(key);
-                            ASensor sensor = new ASensor(key,value, timestamp);
-                            if(sensor.name.equals("s1")){
+                            String key = (String) keys.next();
+                            double value = (double) jsonobj.getDouble(key);
+                            ASensor sensor = new ASensor(key, value, timestamp);
+                            if (sensor.name.equals("s1")) {
                                 synchronized (lock) {
                                     qSensor1.add(sensor.value);
                                     qSensor1.remove();
                                 }
                             }
-                            if(sensor.name.equals("s2")){
+                            if (sensor.name.equals("s2")) {
                                 synchronized (lock) {
                                     qSensor2.add(sensor.value);
                                     qSensor2.poll();
@@ -276,9 +281,10 @@ public class SensorPresenterImpl implements SensorPresenter {
                         }
                     }
                 } catch (JSONException e) {
+
                     e.printStackTrace();
                 }
-        }
+        }}
 
     }
 }
