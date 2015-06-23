@@ -28,16 +28,25 @@ print("Waiting for connection on RFCOMM channel %d" % port)
 while True:
     client_sock, client_info = server_sock.accept()
     print("Accepted connection from ", client_info)
+    counter = 0
     try:
         while True:
  	    #client_sock.send("current = " + str(int(round(time.time() * 1000))))
-	    
-            lst = []
+	    counter = counter + 1
+            if counter > 800:
+		counter=0
+	    lst = []
             d = {}
-            d['s1']=random.uniform(-99, 99)
+            if counter > 500:
+	    	d['s1']=0
+	    else:
+           	 d['s1']=random.uniform(-99, 99)
             lst.append(d)
             d = {}
-            d['s2']=random.uniform(-99, 99)
+            if counter > 500:
+                d['s2']=0
+            else:
+            	d['s2']=random.uniform(-99, 99)
             lst.append(d)
             aaa = randint(0,9)
             print aaa
