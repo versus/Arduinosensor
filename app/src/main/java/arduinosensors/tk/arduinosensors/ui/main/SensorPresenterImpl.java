@@ -18,6 +18,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
@@ -179,6 +181,8 @@ public class SensorPresenterImpl implements SensorPresenter {
     private class ConnectedThread extends Thread {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
+        private final InputStreamReader readerInStream;
+        private final LineNumberReader lineNumberReader;
 
         //creation of the connect thread
         public ConnectedThread(BluetoothSocket socket) {
@@ -192,6 +196,8 @@ public class SensorPresenterImpl implements SensorPresenter {
             } catch (IOException e) { }
 
             mmInStream = tmpIn;
+            readerInStream = new InputStreamReader(mmInStream);
+            lineNumberReader = new LineNumberReader(readerInStream);
             mmOutStream = tmpOut;
         }
 
@@ -202,10 +208,11 @@ public class SensorPresenterImpl implements SensorPresenter {
             // Keep looping to listen for received messages
             while (true) {
                 try {
-                    bytes = mmInStream.read(buffer);            //read bytes from input buffer
-                    String readMessage = new String(buffer, 0, bytes);
+                    //bytes = mmInStream.read(buffer);            //read bytes from input buffer
+                    String readMessage = lineNumberReader.readLine();
+                    bytes = readMessage.length();
 
-                        executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
+                    executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
 
                     // Send the obtained bytes to the UI Activity via handler
                 } catch (IOException e) {
