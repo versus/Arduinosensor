@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,6 +32,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import arduinosensors.tk.arduinosensors.BtDeviceListActivity;
+import arduinosensors.tk.arduinosensors.R;
 import arduinosensors.tk.arduinosensors.model.ASensor;
 import arduinosensors.tk.arduinosensors.model.DbHelper;
 
@@ -47,6 +49,7 @@ public class SensorPresenterImpl implements SensorPresenter {
     DbHelper dbh;
     SensorActivity activity;
     ThreadPoolExecutor executor;
+    ConnectedThread mConnectedThread;
     Queue <Double> qSensor1;
     Queue <Double> qSensor2;
     private static final int SENSOR_Queue_SIZE = 600;
@@ -112,8 +115,27 @@ public class SensorPresenterImpl implements SensorPresenter {
                 //insert code to deal with this
             }
         }
-        ConnectedThread mConnectedThread = new ConnectedThread(btSocket);
+        mConnectedThread = new ConnectedThread(btSocket);
         mConnectedThread.start();
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.button:
+                mConnectedThread.write("1");
+                break;
+            case R.id.button2:
+                mConnectedThread.write("2");
+                break;
+            case R.id.button3:
+                mConnectedThread.write("3");
+                break;
+            case R.id.button4:
+                mConnectedThread.write("4");
+                break;
+        }
     }
 
 
@@ -210,7 +232,8 @@ public class SensorPresenterImpl implements SensorPresenter {
                 try {
                     //bytes = mmInStream.read(buffer);            //read bytes from input buffer
                     String readMessage = lineNumberReader.readLine();
-                    bytes = readMessage.length();
+                    //Log.d("TREAD", "buffer = " + buffer);
+                    //bytes = readMessage.length();
 
                     executor.execute(new jsonWorker(readMessage, System.currentTimeMillis()));
 
@@ -241,6 +264,7 @@ public class SensorPresenterImpl implements SensorPresenter {
         private Boolean stop = false;
 
         public jsonWorker(String message, long timestamp) {
+            Log.d("JSON_WORKER", "message = " + message);
             this.timestamp = timestamp;
             if(message.substring(0,1).contains("[")){
             this.json = message;

@@ -48,18 +48,20 @@ while True:
             else:
             	d['s2']=random.uniform(-99, 99)
             lst.append(d)
-            aaa = randint(0,9)
+            aaa = randint(2,9)
             print aaa
             if aaa <1:
-		client_sock.send("error "+ str(randint(0,9)))
+		client_sock.send("error "+ str(randint(0,9))+"\n")
 	    else:
-            	client_sock.send(json.dumps(lst))
+            	client_sock.send(json.dumps(lst)+ "\n")
             	print json.dumps(lst)
 #            sleep(0.1)
 #	    sleep(1)
-            #data = client_sock.recv(1024)
-            #if len(data) == 0: break
-            # print("received [%s]" % data)
+            data = client_sock.recv(10)
+            if len(data) == 0:
+            	break      
+            else:
+            	print("received [%s]" % data)
     except IOError:
         pass
 

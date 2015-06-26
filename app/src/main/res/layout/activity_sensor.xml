@@ -41,5 +41,33 @@
         android:text=""
         android:textColor="@color/md_black_1000" />
 
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:text="One"
+        android:id="@+id/button"
+        android:layout_gravity="left|bottom" />
+
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:text="Two"
+        android:id="@+id/button2"
+         android:layout_gravity="left|top"/>
+
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:text="Three"
+        android:id="@+id/button3"
+        android:layout_gravity="right|bottom"/>
+
+    <Button
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:text="Four"
+        android:id="@+id/button4"
+        android:layout_gravity="right|top" />
+
 </FrameLayout>
 

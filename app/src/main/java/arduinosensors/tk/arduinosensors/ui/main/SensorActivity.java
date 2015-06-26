@@ -14,8 +14,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +42,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class SensorActivity extends Activity implements SensorView {
+public class SensorActivity extends Activity implements SensorView, View.OnClickListener, View.OnLongClickListener {
 
 
 
@@ -51,6 +53,15 @@ public class SensorActivity extends Activity implements SensorView {
     @InjectView(R.id.txtErrorText)
     TextView textViewError;
 
+    @InjectView(R.id.button)
+    Button btSend1;
+    @InjectView(R.id.button2)
+    Button btSend2;
+    @InjectView(R.id.button3)
+    Button btSend3;
+    @InjectView(R.id.button4)
+    Button btSend4;
+
     @InjectView(R.id.mSensorXYPlot)
     XYPlot dynamicPlot;
 
@@ -59,6 +70,7 @@ public class SensorActivity extends Activity implements SensorView {
     private Thread myThread;
     DbHelper dbHelper;
     SQLiteDatabase db;
+    private  boolean showButton = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +83,8 @@ public class SensorActivity extends Activity implements SensorView {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         ButterKnife.inject(this);
         presenter = new SensorPresenterImpl(this, this);
+        getWindow().getDecorView().findViewById(R.id.mSensorXYPlot).setOnLongClickListener(this);
+        initButtons();
         presenter.onCreate();
 
         bluetoothIn = new Handler() {
@@ -150,8 +164,6 @@ public class SensorActivity extends Activity implements SensorView {
         data.stopThread();
         super.onPause();
         presenter.onPause();
-
-
     }
 
     @Override
@@ -194,6 +206,42 @@ public class SensorActivity extends Activity implements SensorView {
         });
         ad.setCancelable(true);
         ad.show();
+    }
+
+    @Override
+    public void onClick(View view) {
+        presenter.onClick(view);
+
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+        Log.d("onLongClick", "THIS LONG CLICK");
+        if(showButton){
+            btSend1.setVisibility(View.GONE);
+            btSend2.setVisibility(View.GONE);
+            btSend3.setVisibility(View.GONE);
+            btSend4.setVisibility(View.GONE);
+            showButton=false;
+        } else {
+            btSend1.setVisibility(View.VISIBLE);
+            btSend2.setVisibility(View.VISIBLE);
+            btSend3.setVisibility(View.VISIBLE);
+            btSend4.setVisibility(View.VISIBLE);
+            showButton=true;
+        }
+        return showButton;
+    }
+
+    private void initButtons(){
+        btSend1.setOnClickListener(this);
+        btSend2.setOnClickListener(this);
+        btSend3.setOnClickListener(this);
+        btSend4.setOnClickListener(this);
+        btSend1.setVisibility(View.GONE);
+        btSend2.setVisibility(View.GONE);
+        btSend3.setVisibility(View.GONE);
+        btSend4.setVisibility(View.GONE);
     }
 
     // redraws a plot whenever an update is received:
