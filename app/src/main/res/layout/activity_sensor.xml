@@ -45,6 +45,7 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:text="One"
+        android:background="#70FFFFFF"
         android:id="@+id/button"
         android:layout_gravity="left|bottom" />
 
@@ -52,6 +53,7 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:text="Two"
+        android:background="#70FFFFFF"
         android:id="@+id/button2"
          android:layout_gravity="left|top"/>
 
@@ -59,6 +61,7 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:text="Three"
+        android:background="#70FFFFFF"
         android:id="@+id/button3"
         android:layout_gravity="right|bottom"/>
 
@@ -67,6 +70,7 @@
         android:layout_height="140dp"
         android:text="Four"
         android:id="@+id/button4"
+        android:background="#70FFFFFF"
         android:layout_gravity="right|top" />
 
 </FrameLayout>

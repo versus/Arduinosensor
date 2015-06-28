@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="line1"
+        android:summary="Название для линии #1"
+        android:title="Линия #1">
+    </EditTextPreference>
+    <EditTextPreference
+        android:key="line2"
+        android:summary="Название для линии #2"
+        android:title="Линия #2">
+    </EditTextPreference>
+    <EditTextPreference
+        android:key="button1"
+        android:summary="Название для кнопки #1"
+        android:title="Кнопка #1">
+    </EditTextPreference>
+    <EditTextPreference
+        android:key="button2"
+        android:summary="Название для кнопки #2"
+        android:title="Кнопка #2">
+    </EditTextPreference>
+    <EditTextPreference
+        android:key="button3"
+        android:summary="Название для кнопки #3"
+        android:title="Кнопка #3">
+    </EditTextPreference>
+    <EditTextPreference
+        android:key="button4"
+        android:summary="Название для кнопки #4"
+        android:title="Кнопка #4">
+    </EditTextPreference>
+</PreferenceScreen>

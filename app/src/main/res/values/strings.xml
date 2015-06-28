@@ -7,5 +7,6 @@
     <string name="none_paired">No devices have been paired</string>
     <string name="menu_cleardb">Очистить базу</string>
     <string name="menu_exportdb">Экспорт базы</string>
+    <string name="menu_pref">Настройки кнопок</string>
 
 </resources>

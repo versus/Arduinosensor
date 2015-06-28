@@ -3,6 +3,7 @@ package arduinosensors.tk.arduinosensors.ui.main;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +12,7 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,6 +73,7 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
     DbHelper dbHelper;
     SQLiteDatabase db;
     private  boolean showButton = false;
+    private SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +82,7 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_sensor);
-
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         ButterKnife.inject(this);
         presenter = new SensorPresenterImpl(this, this);
@@ -106,8 +109,8 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
 
         // getInstance and position datasets:
         data = new SensorDynamicXYDatasource();
-        SensorDynamicSeries sine1Series = new SensorDynamicSeries(data, 0, "Sensor 1");
-        SensorDynamicSeries sine2Series = new SensorDynamicSeries(data, 1, "Sensor 2");
+        SensorDynamicSeries sine1Series = new SensorDynamicSeries(data, 0, sp.getString("line1", "Sensor 1"));
+        SensorDynamicSeries sine2Series = new SensorDynamicSeries(data, 1, sp.getString("line2", "Sensor 2"));
 
         LineAndPointFormatter formatter1 = new LineAndPointFormatter(Color.rgb(200, 0, 0), null, null, null);
         formatter1.getLinePaint().setStrokeJoin(Paint.Join.ROUND);
@@ -169,9 +172,6 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if(id == R.id.menu_deleteDB){
             showCleanDBAlert();
             return true;
@@ -217,6 +217,10 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
     @Override
     public boolean onLongClick(View view) {
         Log.d("onLongClick", "THIS LONG CLICK");
+        btSend1.setText(sp.getString("button1", "One"));
+        btSend2.setText(sp.getString("button2", "Two"));
+        btSend3.setText(sp.getString("button3", "Three"));
+        btSend4.setText(sp.getString("button4", "Four"));
         if(showButton){
             btSend1.setVisibility(View.GONE);
             btSend2.setVisibility(View.GONE);

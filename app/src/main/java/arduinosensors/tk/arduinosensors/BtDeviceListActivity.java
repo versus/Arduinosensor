@@ -98,15 +98,17 @@ public class BtDeviceListActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if(id == R.id.menu_deleteDB){
             showCleanDBAlert();
             return true;
         }
         if(id == R.id.menu_exportDB){
             return exportDB();
+        }
+        if(id== R.id.menu_preference){
+            Intent i = new Intent(BtDeviceListActivity.this, PrefActive.class);
+            startActivity(i);
+
         }
         return super.onOptionsItemSelected(item);
     }
