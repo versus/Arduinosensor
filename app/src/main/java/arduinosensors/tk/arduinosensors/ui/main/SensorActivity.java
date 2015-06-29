@@ -14,8 +14,10 @@ import android.os.Handler;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -44,13 +46,16 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class SensorActivity extends Activity implements SensorView, View.OnClickListener, View.OnLongClickListener {
+public class SensorActivity extends Activity implements SensorView, View.OnClickListener, GestureDetector.OnGestureListener {
 
-
+    GestureDetector detector;
 
     Handler bluetoothIn;
     final int handlerState = 0;        				 //used to identify handler message
     SensorPresenter presenter;
+
+    @InjectView(R.id.rootLayout)
+    View rootLayout;
 
     @InjectView(R.id.txtErrorText)
     TextView textViewError;
@@ -81,12 +86,13 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_sensor);
         sp = PreferenceManager.getDefaultSharedPreferences(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         ButterKnife.inject(this);
+        detector = new GestureDetector(this);
         presenter = new SensorPresenterImpl(this, this);
-        getWindow().getDecorView().findViewById(R.id.mSensorXYPlot).setOnLongClickListener(this);
         initButtons();
         presenter.onCreate();
 
@@ -172,13 +178,6 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id == R.id.menu_deleteDB){
-            showCleanDBAlert();
-            return true;
-        }
-        if(id == R.id.menu_exportDB){
-            return presenter.exportDB();
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -188,25 +187,6 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
         Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
     }
 
-    private void showCleanDBAlert(){
-        AlertDialog.Builder ad;
-        ad = new AlertDialog.Builder(this);
-        ad.setTitle("Удаление данных");  // заголовок
-        ad.setMessage("Внимание, удаленные данные нельзя будет восстановить."); // сообщение
-        ad.setPositiveButton("Удалить!", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                presenter.cleanDB();
-            }
-        });
-        ad.setNegativeButton("Я передумал", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int arg1) {
-                showMessage("Возможно вы правы");
-
-            }
-        });
-        ad.setCancelable(true);
-        ad.show();
-    }
 
     @Override
     public void onClick(View view) {
@@ -214,8 +194,46 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
 
     }
 
+
+    private void initButtons(){
+        btSend1.setOnClickListener(this);
+        btSend2.setOnClickListener(this);
+        btSend3.setOnClickListener(this);
+        btSend4.setOnClickListener(this);
+        btSend1.setVisibility(View.GONE);
+        btSend2.setVisibility(View.GONE);
+        btSend3.setVisibility(View.GONE);
+        btSend4.setVisibility(View.GONE);
+    }
+
     @Override
-    public boolean onLongClick(View view) {
+    public boolean onTouchEvent(MotionEvent event) {
+        return detector.onTouchEvent(event);
+    }
+
+
+    @Override
+    public boolean onDown(MotionEvent motionEvent) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent motionEvent) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent motionEvent) {
         Log.d("onLongClick", "THIS LONG CLICK");
         btSend1.setText(sp.getString("button1", "One"));
         btSend2.setText(sp.getString("button2", "Two"));
@@ -234,19 +252,43 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
             btSend4.setVisibility(View.VISIBLE);
             showButton=true;
         }
-        return showButton;
+
     }
 
-    private void initButtons(){
-        btSend1.setOnClickListener(this);
-        btSend2.setOnClickListener(this);
-        btSend3.setOnClickListener(this);
-        btSend4.setOnClickListener(this);
-        btSend1.setVisibility(View.GONE);
-        btSend2.setVisibility(View.GONE);
-        btSend3.setVisibility(View.GONE);
-        btSend4.setVisibility(View.GONE);
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        String swipe = "";
+        boolean bSwipe = false;
+
+        float sensitvity = 50;
+
+        if((e1.getX() - e2.getX()) > sensitvity){
+            swipe += "Swipe Left\n";
+            bSwipe = true;
+        }else if((e2.getX() - e1.getX()) > sensitvity){
+            swipe += "Swipe Right\n";
+            bSwipe = true;
+        }else{
+            swipe += "\n";
+        }
+
+        if((e1.getY() - e2.getY()) > sensitvity){
+            swipe += "Swipe Up\n";
+            bSwipe = true;
+        }else if((e2.getY() - e1.getY()) > sensitvity){
+            swipe += "Swipe Down\n";
+            bSwipe = true;
+        }else{
+            swipe += "\n";
+        }
+        //Toast.makeText(getApplicationContext(), swipe, Toast.LENGTH_SHORT).show();
+        if(bSwipe) {
+            presenter.takeScreenShot();
+            Toast.makeText(getApplicationContext(), "Скриншот сохранен", Toast.LENGTH_SHORT).show();
+        }
+        return false;
     }
+
 
     // redraws a plot whenever an update is received:
     private class MyPlotUpdater implements Observer {

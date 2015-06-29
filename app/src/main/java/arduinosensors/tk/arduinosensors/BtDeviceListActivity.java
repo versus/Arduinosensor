@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 
 import arduinosensors.tk.arduinosensors.model.DbHelper;
@@ -49,6 +51,7 @@ public class BtDeviceListActivity extends ActionBarActivity {
 
     @InjectView(R.id.paired_devices)
     ListView pairedListView;
+
 
     // EXTRA string to send on to mainactivity
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
@@ -192,14 +195,18 @@ public class BtDeviceListActivity extends ActionBarActivity {
     };
 
     public boolean exportDB() {
-            File sd = Environment.getExternalStorageDirectory();
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File folder = new File(Environment.getExternalStorageDirectory().toString()+"/Arduinosensors/Dump");
+            folder.mkdirs();
             File data = Environment.getDataDirectory();
             FileChannel source=null;
             FileChannel destination=null;
             String currentDBPath = "/data/"+ "arduinosensors.tk.arduinosensors" +"/databases/"+DbHelper.DB_NAME;
-            String backupDBPath = DbHelper.DB_NAME+".sqlite";
+            String backupDBPath = DbHelper.DB_NAME+timeStamp+".sqlite";
             File currentDB = new File(data, currentDBPath);
-            File backupDB = new File(sd, backupDBPath);
+            File backupDB = new File(folder, backupDBPath);
+
+        Log.d("EXPORTDB","BackupDB path = " + backupDB.toString());
             try {
                 source = new FileInputStream(currentDB).getChannel();
                 destination = new FileOutputStream(backupDB).getChannel();

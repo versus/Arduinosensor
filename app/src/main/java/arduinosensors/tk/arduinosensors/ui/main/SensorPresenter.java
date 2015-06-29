@@ -11,10 +11,6 @@ public interface SensorPresenter {
     void onPause();
     void onResume(Intent intent);
     void onClick(View view);
-
-    boolean exportDB();
-    boolean cleanDB();
-
-
+    void takeScreenShot();
     Queue getSensorValue(String sensorName);
 }

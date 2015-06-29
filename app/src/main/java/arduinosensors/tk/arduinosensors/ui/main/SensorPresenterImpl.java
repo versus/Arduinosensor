@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -138,38 +142,44 @@ public class SensorPresenterImpl implements SensorPresenter {
         }
     }
 
-
     @Override
-    public boolean exportDB() {
-            File sd = Environment.getExternalStorageDirectory();
-            File data = Environment.getDataDirectory();
-            FileChannel source=null;
-            FileChannel destination=null;
-            String currentDBPath = "/data/"+ "arduinosensors.tk.arduinosensors" +"/databases/"+DbHelper.DB_NAME;
-            String backupDBPath = DbHelper.DB_NAME+".sqlite";
-            File currentDB = new File(data, currentDBPath);
-            File backupDB = new File(sd, backupDBPath);
-            try {
-                source = new FileInputStream(currentDB).getChannel();
-                destination = new FileOutputStream(backupDB).getChannel();
-                destination.transferFrom(source, 0, source.size());
-                source.close();
-                destination.close();
-                rootView.showMessage("DB Exported!");
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
+    public void takeScreenShot() {
+        saveScreenShot(screenShot(activity.rootLayout));
+    }
+
+    public Bitmap screenShot(View view) {
+        Bitmap bitmap;
+        view.setDrawingCacheEnabled(true);
+        bitmap = Bitmap.createBitmap(view.getDrawingCache());
+        view.setDrawingCacheEnabled(false);
+        return bitmap;
+    }
+
+    public boolean saveScreenShot(Bitmap bm) {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File folder = new File(Environment.getExternalStorageDirectory().toString()+"/Arduinosensors/images");
+        folder.mkdirs();
+        OutputStream fout = null;
+        File imageFile = new File(folder, "screenshot" + timeStamp+".png");
+
+        try {
+            fout = new FileOutputStream(imageFile);
+            //bm.compress(Bitmap.CompressFormat.JPEG, 90, fout);
+            bm.compress(Bitmap.CompressFormat.PNG, 100, fout);
+            fout.flush();
+            fout.close();
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         return true;
     }
 
-    @Override
-    public boolean  cleanDB() {
-        if(db.delete(DbHelper.TABLE_NAME_SENSOR, "1", null) > 0){
-            rootView.showMessage("База данных очищена!");
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public synchronized Queue getSensorValue(String sensorName) {
