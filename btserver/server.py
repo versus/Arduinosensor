@@ -48,7 +48,7 @@ while True:
             else:
             	d['s2']=random.uniform(-99, 99)
             lst.append(d)
-            aaa = randint(2,9)
+            aaa = randint(0,3)
             print aaa
             if aaa <1:
 		client_sock.send("error "+ str(randint(0,9))+"\n")

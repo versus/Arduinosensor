@@ -101,9 +101,11 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
                         if (msg.what == handlerState) {
                                 String readMessage = (String) msg.obj;
                                 textViewError.setText(readMessage);
+                                textViewError.postDelayed(clearViewError, 2000);
                         }
                     }
         };
+
 
 
         dbHelper = new DbHelper(this);
@@ -137,8 +139,8 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
         //dynamicPlot.setDomainStepMode(XYStepMode.INCREMENT_BY_VAL);
         //dynamicPlot.setDomainStepValue(5);
 
-        dynamicPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
-        dynamicPlot.setRangeStepValue(10);
+        //dynamicPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
+        //dynamicPlot.setRangeStepValue(10);
 
         dynamicPlot.setRangeValueFormat(new DecimalFormat("###.###"));
 
@@ -153,6 +155,12 @@ public class SensorActivity extends Activity implements SensorView, View.OnClick
 
 
     }
+
+    Runnable clearViewError = new Runnable() {
+        public void run() {
+            textViewError.setText("");
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
