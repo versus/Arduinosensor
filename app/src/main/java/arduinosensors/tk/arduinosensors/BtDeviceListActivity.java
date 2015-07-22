@@ -34,6 +34,8 @@ import arduinosensors.tk.arduinosensors.ui.main.SensorActivity;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
+import com.crittercism.app.Crittercism;
+
 
 public class BtDeviceListActivity extends ActionBarActivity {
 
@@ -65,6 +67,7 @@ public class BtDeviceListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_device_list);
         ButterKnife.inject(this);
+        Crittercism.initialize(getApplicationContext(), "55af5e9ba046e30a00dc2a5b");
         checkBTState();
         dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();

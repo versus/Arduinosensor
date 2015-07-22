@@ -37,31 +37,31 @@ while True:
 		counter=0
 	    lst = []
             d = {}
-            if counter > 500:
-	    	d['s1']=0
-	    else:
-           	 d['s1']=random.uniform(-99, 99)
+#            if counter > 500:
+#	    	d['s1']=0
+#	    else:
+            d['s1']=random.uniform(-99, 99)
             lst.append(d)
             d = {}
-            if counter > 500:
-                d['s2']=0
-            else:
-            	d['s2']=random.uniform(-99, 99)
+#            if counter > 500:
+#                d['s2']=0
+#            else:
+            d['s2']=random.uniform(-1099, 2099)
             lst.append(d)
-            aaa = randint(0,3)
+            aaa = randint(0,30)
             print aaa
             if aaa <1:
 		client_sock.send("error "+ str(randint(0,9))+"\n")
 	    else:
             	client_sock.send(json.dumps(lst)+ "\n")
             	print json.dumps(lst)
-#            sleep(0.1)
+            sleep(0.1)
 #	    sleep(1)
-            data = client_sock.recv(10)
-            if len(data) == 0:
-            	break      
-            else:
-            	print("received [%s]" % data)
+#            data = client_sock.recv(10)
+#            if len(data) == 0:
+#            	break      
+#            else:
+#            	print("received [%s]" % data)
     except IOError:
         pass
 
